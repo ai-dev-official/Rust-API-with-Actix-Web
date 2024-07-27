@@ -9,18 +9,25 @@ services:
       POSTGRES_PASSWORD: "rustdb"
       POSTGRES_DB: "rustcrud"
     volumes:
-        - rust_api_data:/var/lib/postgresql/data
+      - rust_api_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
   app:
     container_name: rust_backend
-    build: 
-      context: .
-      network: host
+    build: .
     ports:
-      - "8000:8000"
+      - "8080:8080"
     environment:
-      - DATABASE_URL=postgres://rustdb:rustdb@localhost:5432/rustcrud?sslmode=disable
+      - DATABASE_URL=postgres://rustdb:rustdb@postgresdb:5432/rustcrud?sslmode=disable
     depends_on:
       - postgresdb
+    networks:
+      - app-network
   
 volumes:
   rust_api_data: {}
+
+networks:
+  app-network:
+    driver: bridge

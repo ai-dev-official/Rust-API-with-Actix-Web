@@ -1,148 +1,80 @@
-1. Install Docker
+Rust API with Actix-Web
 
-If you haven't already installed Docker on macOS, download and install Docker Desktop from the official Docker website. Follow the installation instructions provided.
-2. Pull the PostgreSQL Docker Image
+This project is a RESTful API built with Rust, using the Actix-Web framework and Postgres DB. The API is dockerized for easy deployment and management.
+Endpoints
+Contents
 
-Open a terminal and pull the PostgreSQL image from Docker Hub:
+    GET /contents - Retrieve a list of all contents.
+    GET /content/{id} - Retrieve a specific content by its ID.
+    POST /content/{id}/like - Like a specific content by its ID.
+    POST /content/{id}/save - Save a specific content by its ID.
+    POST /content/{id}/share - Share a specific content by its ID.
+    DELETE /content/{id}/delete - Delete a specific content by its ID.
+
+Videos
+
+    GET /videos - Retrieve a list of all videos.
+    GET /video/{id} - Retrieve a specific video by its ID.
+    POST /video/{id}/like - Like a specific video by its ID.
+    POST /video/{id}/view - View a specific video by its ID.
+
+Users
+
+    GET /users - Retrieve a list of all users.
+    GET /user/{id} - Retrieve a specific user by their ID.
+
+Chats
+
+    GET /chat/{id} - Retrieve a specific chat by its ID.
+    POST /chats - Create a new chat.
+
+Prerequisites
+
+    Docker
+    Docker Compose
+
+Getting Started
+Clone the repository
+
+bash
+
+git clone https://github.com/yourusername/rust-api-dockerized.git
+cd rust-api-dockerized
+
+Build and Run the Docker Containers
 
 bash
 
-docker pull postgres
+docker-compose up --build
 
-3. Run the PostgreSQL Container
+This command will build the Docker image and start the containers defined in the docker-compose.yml file.
+Accessing the API
 
-Run a PostgreSQL container with the following command:
+Once the containers are up and running, the API will be accessible at http://localhost:8080.
+Database Configuration
 
-bash
+This project uses PostgreSQL as the database. The database configuration can be found in the docker-compose.yml file. You can modify the settings as needed.
+Running Migrations
 
-docker run --name rust-crud-container -e POSTGRES_USER=rustdb -e POSTGRES_PASSWORD=rustdb -e POSTGRES_DB=rustcrud -p 5432:5432 -d postgres
-
-    --name postgres-container: Assigns a name to the container.
-    -e POSTGRES_USER=myuser: Sets the PostgreSQL username.
-    -e POSTGRES_PASSWORD=mypassword: Sets the PostgreSQL password.
-    -e POSTGRES_DB=mydatabase: Creates a database named mydatabase.
-    -p 5432:5432: Maps port 5432 on your host to port 5432 on the container.
-    -d: Runs the container in detached mode.
-    postgres: Specifies the image to use.
-
-4. Verify the Container is Running
-
-Check that the container is running:
+Before starting the API, ensure that the database schema is up to date by running the migrations:
 
 bash
 
-docker ps
+docker-compose run --rm app cargo sqlx migrate run
 
-You should see your PostgreSQL container in the list.
-5. Connect to PostgreSQL from Your Rust Application
+Environment Variables
 
-    Update .env File
+The API uses environment variables for configuration. You can find the environment variable definitions in the docker-compose.yml file. Update these variables as necessary to match your setup.
+Project Structure
 
-    Update your .env file with the following connection URL:
+    src/ - Contains the source code for the API.
+    migrations/ - Contains the database migrations.
+    Dockerfile - Defines the Docker image for the API.
+    docker-compose.yml - Defines the Docker services for the application.
 
-    dotenv
-docker run --name rust-crud-container -e POSTGRES_USER=rustdb -e POSTGRES_PASSWORD=rustdb -e POSTGRES_DB=rustcrud -p 5432:5432 -d postgres
-DATABASE_URL=postgres://rustdb:rustdb@localhost:5432/rust-crud-container 
+Contributing
 
-Ensure that myuser, mypassword, and mydatabase match the values used when starting the container.
+If you'd like to contribute to this project, please fork the repository and use a feature branch. Pull requests are welcome.
+License
 
-Initialize Database Connection in Rust
-
-Use the same initialization code as before in your main.rs or lib.rs:
-
-rust
-
-use actix_web::{web, App, HttpServer};
-use sqlx::postgres::PgPoolOptions;
-use dotenv::dotenv;
-use std::env;
-
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    dotenv().ok();  // Load environment variables from `.env`
-
-    let database_url = env::var("DATABASE_URL")
-        .expect("DATABASE_URL must be set");
-
-    let pool = PgPoolOptions::new()
-        .max_connections(5)
-        .connect(&database_url)
-        .await
-        .expect("Failed to create pool");
-
-    HttpServer::new(move || {
-        App::new()
-            .app_data(web::Data::new(pool.clone()))
-            .service(
-                // Define your routes here
-            )
-    })
-    .bind("127.0.0.1:8080")?
-    .run()
-    .await
-}
-
-Create Database Tables
-
-Connect to the PostgreSQL container using psql or a graphical tool:
-
-Using psql
-
-    First, find the container ID:
-
-    bash
-
-docker ps
-
-Connect to the container:
-
-bash
-DATABASE_URL=postgres://rustdb:rustdb@localhost:5432/rust-crud-container
-docker exec -it rust-crud-container psql -U rustdb -d rustcrud
-
-Create tables:
-
-sql
-
-        CREATE TABLE contents (
-            id SERIAL PRIMARY KEY,
-            user_id VARCHAR(255),
-            user_name VARCHAR(255),
-            user_image TEXT,
-            content TEXT,
-            content_img TEXT,
-            media_type VARCHAR(50),
-            content_time TIMESTAMPTZ,
-            saves INTEGER DEFAULT 0,
-            likes INTEGER DEFAULT 0,
-            comments INTEGER DEFAULT 0,
-            share INTEGER DEFAULT 0,
-            location VARCHAR(255)
-        );
-
-        CREATE TABLE videos (
-            id SERIAL PRIMARY KEY,
-            user_id VARCHAR(255),
-            user_name VARCHAR(255),
-            user_image TEXT,
-            content_video TEXT,
-            content_time TIMESTAMPTZ,
-            views INTEGER DEFAULT 0,
-            likes INTEGER DEFAULT 0,
-            saves INTEGER DEFAULT 0,
-            comments INTEGER DEFAULT 0,
-            share INTEGER DEFAULT 0,
-            location VARCHAR(255)
-        );
-
-    Using pgAdmin
-        Install pgAdmin if you prefer a graphical tool.
-        Configure pgAdmin to connect to the PostgreSQL instance running in the Docker container (host localhost, port 5432, and credentials set previously).
-
-Summary
-
-    Install Docker Desktop and run the PostgreSQL container with the specified credentials.
-    Connect your Rust application using the DATABASE_URL environment variable.
-    Create the necessary database tables using psql or a graphical tool like pgAdmin.
-
-This setup will allow you to work with PostgreSQL in a containerized environment on macOS, making it easy to manage and deploy your database alongside your application.
+This project is licensed under the MIT License.
